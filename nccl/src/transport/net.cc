@@ -12,6 +12,7 @@
 #include "gdrwrap.h"
 #include "shm.h"
 #include "profiler.h"
+#include <inttypes.h>
 #if defined(ENABLE_NPKIT)
 #include "npkit/npkit.h"
 #endif
@@ -1001,6 +1002,10 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           }
           if (ready) {
             // Data is ready, try to send.
+
+            INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, size, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
+
             NCCLCHECK(ncclNetIsend(comm, resources->netSendComm, buff, size, resources->rank, mhandle, sub->requests+buffSlot));
             if (sub->requests[buffSlot] != NULL) {
 
@@ -1054,6 +1059,9 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
 #endif
 
         if (done) {
+
+          INFO(NCCL_INIT, "NET SEND EXIT INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], *(volatile uint64_t*)NpKit::GetCpuTimestamp());
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_EXIT)
           NpKit::CollectCpuEvent(
@@ -1195,6 +1203,9 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           for (int i=0; i<subGroup->groupSize; i++) {
             struct ncclProxySubArgs* sub = subGroup+i;
 
+            INFO(NCCL_INIT, "NET RECV ENTRY INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, sizes[i], *(volatile uint64_t*)NpKit::GetCpuTimestamp());
+
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
             NpKit::CollectCpuEvent(
                 NPKIT_EVENT_NET_RECV_ENTRY,
@@ -1255,6 +1266,11 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           for (int i=0; i<NCCL_PROXY_MAX_SUBS; i++) totalSize += sizes[i];
           for (int i=0; i<subGroup->groupSize; i++) {
             struct ncclProxySubArgs* sub = subGroup + i;
+
+            struct recvResources* resources = (struct recvResources*) (subGroup->connection->transportResources);  // Added for the following INFO()
+
+            INFO(NCCL_INIT, "NET RECV EXIT INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, sizes[i], *(volatile uint64_t*)NpKit::GetCpuTimestamp());
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
             NpKit::CollectCpuEvent(
