@@ -1003,11 +1003,8 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           if (ready) {
             // Data is ready, try to send.
 
-            // INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
-            //         resources->rank, resources->remoteRank, size, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
-
-            INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
-                    resources->rank, resources->remoteRank, size, sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
+            // INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
+            //         resources->rank, resources->remoteRank, size, sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
 
             NCCLCHECK(ncclNetIsend(comm, resources->netSendComm, buff, size, resources->rank, mhandle, sub->requests+buffSlot));
             if (sub->requests[buffSlot] != NULL) {
@@ -1021,7 +1018,7 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
                   size,
 #endif
                   uint64_t(sub->requests+buffSlot)/sizeof(void*),
-                  *(volatile uint64_t*)NpKit::GetCpuTimestamp(), sub->channelId);
+                  *(volatile uint64_t*)NpKit::GetCpuTimestamp(), resources->rank, resources->remoteRank, sub->channelId);
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
               g_npkit_net_poll_cnt = 0;
 #endif
@@ -1063,11 +1060,8 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
 
         if (done) {
 
-          // INFO(NCCL_INIT, "NET SEND EXIT INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
-          //           resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], *(volatile uint64_t*)NpKit::GetCpuTimestamp());
-
-          INFO(NCCL_INIT, "NET SEND EXIT INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
-                    resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
+          // INFO(NCCL_INIT, "NET SEND EXIT INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
+          //           resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_EXIT)
           NpKit::CollectCpuEvent(
@@ -1078,7 +1072,7 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
               sub->npKitSizesFifo[buffSlot],
 #endif
               uint64_t(sub->requests+buffSlot)/sizeof(void*),
-              *(volatile uint64_t*)NpKit::GetCpuTimestamp(), sub->channelId);
+              *(volatile uint64_t*)NpKit::GetCpuTimestamp(), resources->rank, resources->remoteRank, sub->channelId);
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
           g_npkit_net_poll_cnt = 0;
 #endif
@@ -1209,11 +1203,8 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           for (int i=0; i<subGroup->groupSize; i++) {
             struct ncclProxySubArgs* sub = subGroup+i;
 
-            // INFO(NCCL_INIT, "NET RECV ENTRY INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
-            //         resources->rank, resources->remoteRank, sizes[i], *(volatile uint64_t*)NpKit::GetCpuTimestamp());
-
-            INFO(NCCL_INIT, "NET RECV ENTRY INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
-                    resources->rank, resources->remoteRank, sizes[i], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
+            // INFO(NCCL_INIT, "NET RECV ENTRY INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
+            //         resources->rank, resources->remoteRank, sizes[i], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
             NpKit::CollectCpuEvent(
@@ -1224,7 +1215,7 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
                 sizes[i],
 #endif
                 uint64_t(sub->requests+(step%NCCL_STEPS))/sizeof(void*),
-                *(volatile uint64_t*)NpKit::GetCpuTimestamp(), sub->channelId);
+                *(volatile uint64_t*)NpKit::GetCpuTimestamp(), resources->remoteRank, resources->rank, sub->channelId);
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
             g_npkit_net_poll_cnt = 0;
 #endif
@@ -1278,11 +1269,8 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
 
             struct recvResources* resources = (struct recvResources*) (subGroup->connection->transportResources);  // Added for the following INFO()
 
-            // INFO(NCCL_INIT, "NET RECV EXIT INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Timestamp:%" PRIu64 ")\n",
-            //         resources->rank, resources->remoteRank, sizes[i], *(volatile uint64_t*)NpKit::GetCpuTimestamp());
-
-            INFO(NCCL_INIT, "NET RECV EXIT INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
-                    resources->rank, resources->remoteRank, sizes[i], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
+            // INFO(NCCL_INIT, "NET RECV EXIT INFO: (Receiver_Global_Rank:%d, Sender_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ")\n",
+            //         resources->rank, resources->remoteRank, sizes[i], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp());
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
             NpKit::CollectCpuEvent(
@@ -1293,7 +1281,7 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
                 sizes[i],
 #endif
                 uint64_t(sub->requests+(step%NCCL_STEPS))/sizeof(void*),
-                *(volatile uint64_t*)NpKit::GetCpuTimestamp(), sub->channelId);
+                *(volatile uint64_t*)NpKit::GetCpuTimestamp(), resources->remoteRank, resources->rank, sub->channelId);
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
             g_npkit_net_poll_cnt = 0;
 #endif

@@ -8,10 +8,14 @@
 uint64_t NpKit::rank_ = 0;
 
 NpKitEvent** NpKit::gpu_event_buffers_ = nullptr;
-NpKitEvent** NpKit::cpu_event_buffers_ = nullptr;
+NpKitEvent** NpKit::copy_gpu_event_buffers_ = nullptr;//
+// NpKitEvent** NpKit::cpu_event_buffers_ = nullptr;
+CPUEvent** NpKit::cpu_event_buffers_ = nullptr;
 
 NpKitEventCollectContext* NpKit::gpu_collect_contexts_ = nullptr;
-NpKitEventCollectContext* NpKit::cpu_collect_contexts_ = nullptr;
+NpKitEventCollectContext* NpKit::copy_gpu_collect_contexts_ = nullptr;
+// NpKitEventCollectContext* NpKit::cpu_collect_contexts_ = nullptr;
+CPUEventCollectContext* NpKit::cpu_collect_contexts_ = nullptr;
 uint64_t* NpKit::cpu_timestamp_ = nullptr;
 
 std::thread* NpKit::cpu_timestamp_update_thread_ = nullptr;
@@ -31,7 +35,9 @@ void NpKit::CpuTimestampUpdateThread() {
 ncclResult_t NpKit::Init(int rank) {
   uint64_t i = 0;
   NpKitEventCollectContext ctx;
+  CPUEventCollectContext cpu_ctx; //
   ctx.event_buffer_head = 0;
+  cpu_ctx.event_buffer_head = 0;
   rank_ = rank;
 
   // Init event data structures
@@ -44,11 +50,14 @@ ncclResult_t NpKit::Init(int rank) {
   }
 
   NCCLCHECK(ncclCalloc(&cpu_event_buffers_, kNumCpuEventBuffers));
+  NCCLCHECK(ncclCalloc(&copy_gpu_event_buffers_, kNumCpuEventBuffers)); //
   NCCLCHECK(ncclCalloc(&cpu_collect_contexts_, kNumCpuEventBuffers));
+  NCCLCHECK(ncclCalloc(&copy_gpu_collect_contexts_, kNumCpuEventBuffers)); //
   for (i = 0; i < kNumCpuEventBuffers; i++) {
     NCCLCHECK(ncclCalloc(cpu_event_buffers_ + i, kMaxNumCpuEventsPerBuffer));
-    ctx.event_buffer = cpu_event_buffers_[i];
-    cpu_collect_contexts_[i] = ctx;
+    NCCLCHECK(ncclCalloc(copy_gpu_event_buffers_ + i, kMaxNumCpuEventsPerBuffer)); //
+    cpu_ctx.event_buffer = cpu_event_buffers_[i];
+    cpu_collect_contexts_[i] = cpu_ctx;
   }
 
   // Init timestamp
@@ -73,8 +82,10 @@ ncclResult_t NpKit::Dump(const std::string& dump_dir) {
     dump_file_path += "_channel_";
     dump_file_path += std::to_string(i);
     auto cpu_trace_file = std::fstream(dump_file_path, std::ios::out | std::ios::binary);
+    // cpu_trace_file.write(reinterpret_cast<char*>(cpu_event_buffers_[i]),
+    //     cpu_collect_contexts_[i].event_buffer_head * sizeof(NpKitEvent));
     cpu_trace_file.write(reinterpret_cast<char*>(cpu_event_buffers_[i]),
-        cpu_collect_contexts_[i].event_buffer_head * sizeof(NpKitEvent));
+        cpu_collect_contexts_[i].event_buffer_head * sizeof(CPUEvent));
     cpu_trace_file.close();
   }
 
@@ -102,11 +113,15 @@ ncclResult_t NpKit::Dump(const std::string& dump_dir) {
     dump_file_path += std::to_string(rank_);
     dump_file_path += "_buf_";
     dump_file_path += std::to_string(i);
-    NCCLCHECK(ncclCudaMemcpy(cpu_event_buffers_[0], gpu_event_buffers_[i], kMaxNumGpuEventsPerBuffer));
-    NCCLCHECK(ncclCudaMemcpy(cpu_collect_contexts_, gpu_collect_contexts_ + i, 1));
+    // NCCLCHECK(ncclCudaMemcpy(cpu_event_buffers_[0], gpu_event_buffers_[i], kMaxNumGpuEventsPerBuffer));
+    // NCCLCHECK(ncclCudaMemcpy(cpu_collect_contexts_, gpu_collect_contexts_ + i, 1));
+    NCCLCHECK(ncclCudaMemcpy(copy_gpu_event_buffers_[0], gpu_event_buffers_[i], kMaxNumGpuEventsPerBuffer));
+    NCCLCHECK(ncclCudaMemcpy(copy_gpu_collect_contexts_, gpu_collect_contexts_ + i, 1));
     auto gpu_trace_file = std::fstream(dump_file_path, std::ios::out | std::ios::binary);
-    gpu_trace_file.write(reinterpret_cast<char*>(cpu_event_buffers_[0]),
-        cpu_collect_contexts_[0].event_buffer_head * sizeof(NpKitEvent));
+    // gpu_trace_file.write(reinterpret_cast<char*>(cpu_event_buffers_[0]),
+    //     cpu_collect_contexts_[0].event_buffer_head * sizeof(NpKitEvent));
+    gpu_trace_file.write(reinterpret_cast<char*>(copy_gpu_event_buffers_[0]),
+        copy_gpu_collect_contexts_[0].event_buffer_head * sizeof(NpKitEvent));
     gpu_trace_file.close();
   }
 
@@ -157,14 +172,28 @@ NpKitEventCollectContext* NpKit::GetGpuEventCollectContexts() {
   return gpu_collect_contexts_;
 }
 
-void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, int channel_id) {
+// void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, int channel_id) {
+//   uint64_t event_buffer_head = cpu_collect_contexts_[channel_id].event_buffer_head;
+//   if (event_buffer_head < kMaxNumCpuEventsPerBuffer) {
+//     NpKitEvent& event = cpu_collect_contexts_[channel_id].event_buffer[event_buffer_head];
+//     event.fields.type = type;
+//     event.fields.size = size;
+//     event.fields.rsvd = rsvd;
+//     event.fields.timestamp = timestamp;
+//     cpu_collect_contexts_[channel_id].event_buffer_head++;
+//   }
+// }
+
+void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, uint8_t sender_rank, uint8_t receiver_rank, int channel_id) {
   uint64_t event_buffer_head = cpu_collect_contexts_[channel_id].event_buffer_head;
   if (event_buffer_head < kMaxNumCpuEventsPerBuffer) {
-    NpKitEvent& event = cpu_collect_contexts_[channel_id].event_buffer[event_buffer_head];
+    CPUEvent& event = cpu_collect_contexts_[channel_id].event_buffer[event_buffer_head];
     event.fields.type = type;
     event.fields.size = size;
     event.fields.rsvd = rsvd;
     event.fields.timestamp = timestamp;
+    event.fields.sender_rank = sender_rank;
+    event.fields.receiver_rank = receiver_rank;
     cpu_collect_contexts_[channel_id].event_buffer_head++;
   }
 }

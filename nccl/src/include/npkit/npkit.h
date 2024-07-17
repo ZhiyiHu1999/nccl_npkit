@@ -36,7 +36,8 @@ class NpKit {
     }
   }
 
-  static void CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, int channel_id);
+  // static void CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, int channel_id);
+  static void CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, uint8_t sender_rank, uint8_t receiver_rank, int channel_id);
 
   static uint64_t* GetCpuTimestamp();
 
@@ -50,10 +51,14 @@ class NpKit {
   static const uint64_t kMaxNumCpuEventsPerBuffer = 1ULL << 21;
 
   static NpKitEvent** gpu_event_buffers_;
-  static NpKitEvent** cpu_event_buffers_;
+  static NpKitEvent** copy_gpu_event_buffers_;  //
+  // static NpKitEvent** cpu_event_buffers_;
+  static CPUEvent** cpu_event_buffers_;
 
   static NpKitEventCollectContext* gpu_collect_contexts_;
-  static NpKitEventCollectContext* cpu_collect_contexts_;
+  static NpKitEventCollectContext* copy_gpu_collect_contexts_;  //
+  // static NpKitEventCollectContext* cpu_collect_contexts_;
+  static CPUEventCollectContext* cpu_collect_contexts_;
   static uint64_t* cpu_timestamp_;
 
   static uint64_t rank_;
