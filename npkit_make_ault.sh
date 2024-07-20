@@ -2,7 +2,8 @@
 
 cd nccl
 
-module load cuda/11.6.2
+# module load cuda/11.6.2
+module load cuda/12.1.1
 module list
 
 make clean
@@ -67,6 +68,8 @@ export NPKIT_FLAGS="-DENABLE_NPKIT -DENABLE_NPKIT_EVENT_TIME_SYNC_CPU -DENABLE_N
 #     -DENABLE_NPKIT_EVENT_SEND_ENTRY -DENABLE_NPKIT_EVENT_SEND_EXIT \
 #     -DENABLE_NPKIT_EVENT_RECV_ENTRY -DENABLE_NPKIT_EVENT_RECV_EXIT"
 
-make -j src.build CUDA_HOME=/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/cuda-11.6.2-vk2v3pwiid3jg5ffedjh5evex6ezxg4p NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80" NPKIT_FLAGS="$NPKIT_FLAGS"
+# make -j src.build CUDA_HOME=/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/cuda-11.6.2-vk2v3pwiid3jg5ffedjh5evex6ezxg4p NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80" NPKIT_FLAGS="$NPKIT_FLAGS"
+make -j src.build CUDA_HOME=/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/cuda-12.1.1-zbdbt4aikrp6sdems6n3t5wvqxm3tza5 NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80" NPKIT_FLAGS="$NPKIT_FLAGS"
 
-    
+# make -j src.build CUDA_HOME=/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/cuda-12.1.1-zbdbt4aikrp6sdems6n3t5wvqxm3tza5 NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70" NPKIT_FLAGS="$NPKIT_FLAGS"  ## NVIDIA V100 GPU
+# make -j src.build CUDA_HOME=/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/cuda-12.1.1-zbdbt4aikrp6sdems6n3t5wvqxm3tza5 NVCC_GENCODE="-gencode=arch=compute_86,code=sm_86" NPKIT_FLAGS="$NPKIT_FLAGS"
