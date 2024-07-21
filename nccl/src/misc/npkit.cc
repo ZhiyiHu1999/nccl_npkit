@@ -4,6 +4,7 @@
 
 #include "alloc.h"
 #include "npkit/npkit.h"
+#include <atomic>
 
 uint64_t NpKit::rank_ = 0;
 
@@ -21,14 +22,23 @@ uint64_t* NpKit::cpu_timestamp_ = nullptr;
 std::thread* NpKit::cpu_timestamp_update_thread_ = nullptr;
 volatile bool NpKit::cpu_timestamp_update_thread_should_stop_ = false;
 
+uint64_t NpKit::init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();  //
+uint64_t NpKit::init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();  //
+uint64_t NpKit::init_clock_offset = NpKit::init_system_clock - NpKit::init_steady_clock;  //
+
 void NpKit::CpuTimestampUpdateThread() {
-  uint64_t init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();
-  uint64_t init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();
+  // uint64_t init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();
+  // uint64_t init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();
+  // NpKit::init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();  //
+  // NpKit::init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();  //
+  // NpKit::init_clock_offset = NpKit::init_system_clock - NpKit::init_steady_clock;  //
+  std::atomic_thread_fence(std::memory_order_seq_cst);
   uint64_t curr_steady_clock = 0;
   volatile uint64_t* volatile_cpu_timestamp_ = cpu_timestamp_;
   while (!cpu_timestamp_update_thread_should_stop_) {
     curr_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();
-    *volatile_cpu_timestamp_ = init_system_clock + (curr_steady_clock - init_steady_clock);
+    *volatile_cpu_timestamp_ = NpKit::init_system_clock + (curr_steady_clock - NpKit::init_steady_clock);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
   }
 }
 

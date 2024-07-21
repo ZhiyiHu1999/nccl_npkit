@@ -174,7 +174,7 @@
  /usr/include/c++/8/bits/atomic_base.h \
  /usr/include/c++/8/bits/atomic_lockfree_defines.h \
  /usr/include/c++/8/backward/auto_ptr.h include/npkit/npkit_event.h \
- include/npkit/npkit_struct.h
+ include/npkit/npkit_struct.h /usr/include/c++/8/atomic
 misc/npkit.cc:
 /usr/include/stdc-predef.h:
 /usr/include/c++/8/chrono:
@@ -432,3 +432,4 @@ include/npkit/npkit.h:
 /usr/include/c++/8/backward/auto_ptr.h:
 include/npkit/npkit_event.h:
 include/npkit/npkit_struct.h:
+/usr/include/c++/8/atomic:
