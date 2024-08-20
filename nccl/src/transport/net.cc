@@ -1003,8 +1003,9 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           if (ready) {
             // Data is ready, try to send.
 
-            INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ")\n",
-                    resources->rank, resources->remoteRank, size, sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), std::chrono::steady_clock::now().time_since_epoch().count());
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_EXIT)
+              uint64_t ts_net_isend_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+#endif
 
             NCCLCHECK(ncclNetIsend(comm, resources->netSendComm, buff, size, resources->rank, mhandle, sub->requests+buffSlot));
             if (sub->requests[buffSlot] != NULL) {
@@ -1018,11 +1019,14 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
                   size,
 #endif
                   uint64_t(sub->requests+buffSlot)/sizeof(void*),
-                  (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count()), resources->rank, resources->remoteRank, sub->channelId);
+                  ts_net_isend_entry, resources->rank, resources->remoteRank, sub->channelId);
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
               g_npkit_net_poll_cnt = 0;
 #endif
 #endif
+
+          INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ", ts_net_isend_entry:%" PRIu64 ", ts_now:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, size, sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), std::chrono::steady_clock::now().time_since_epoch().count(), ts_net_isend_entry, (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count()));
 
 #if defined(ENABLE_NPKIT_NET_CHECK_LATENCY)
               sub->npKitStartTime[buffSlot] = sub->npKitLastPollTime[buffSlot] = npKitGetTsInUs();
