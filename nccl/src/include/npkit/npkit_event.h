@@ -95,4 +95,10 @@
 
 #define NPKIT_PRIM_COLLECT_DATA_PROCESS_TIME                    0x4F
 
+#define NPKIT_EVENT_NET_SEND_TEST_ENTRY                         0X50
+#define NPKIT_EVENT_NET_SEND_TEST_EXIT                          0X51
+
+#define NPKIT_EVENT_NET_RECV_TEST_ENTRY                         0X52
+#define NPKIT_EVENT_NET_RECV_TEST_EXIT                          0X53
+
 #endif

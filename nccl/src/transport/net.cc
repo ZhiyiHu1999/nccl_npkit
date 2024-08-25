@@ -1004,13 +1004,17 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
             // Data is ready, try to send.
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_EXIT)
-              uint64_t ts_net_isend_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+              // volatile uint64_t ts_net_isend_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+              uint64_t ts_net_isend_entry = std::chrono::steady_clock::now().time_since_epoch().count();
 #endif
 
             NCCLCHECK(ncclNetIsend(comm, resources->netSendComm, buff, size, resources->rank, mhandle, sub->requests+buffSlot));
             if (sub->requests[buffSlot] != NULL) {
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_EXIT)
+              // volatile uint64_t ts_net_isend_exit = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+              uint64_t ts_net_isend_exit = std::chrono::steady_clock::now().time_since_epoch().count();
+
               NpKit::CollectCpuEvent(
                   NPKIT_EVENT_NET_SEND_ENTRY,
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
@@ -1020,13 +1024,24 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
 #endif
                   uint64_t(sub->requests+buffSlot)/sizeof(void*),
                   ts_net_isend_entry, resources->rank, resources->remoteRank, sub->channelId);
+
+              NpKit::CollectCpuEvent(
+                  NPKIT_EVENT_NET_SEND_EXIT,
+#if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
+                  g_npkit_net_poll_cnt,
+#else
+                  size,
+#endif
+                  uint64_t(sub->requests+buffSlot)/sizeof(void*),
+                  ts_net_isend_exit, resources->rank, resources->remoteRank, sub->channelId);
+
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
               g_npkit_net_poll_cnt = 0;
 #endif
 #endif
 
-          INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ", ts_net_isend_entry:%" PRIu64 ", ts_now:%" PRIu64 ")\n",
-                    resources->rank, resources->remoteRank, size, sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), std::chrono::steady_clock::now().time_since_epoch().count(), ts_net_isend_entry, (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count()));
+          INFO(NCCL_INIT, "NET SEND ENTRY INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ", ts_net_isend_entry:%" PRIu64 ", ts_net_isend_exit:%" PRIu64 ", ts_now:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, size, sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), std::chrono::steady_clock::now().time_since_epoch().count(), ts_net_isend_entry, ts_net_isend_exit, std::chrono::steady_clock::now().time_since_epoch().count());
 
 #if defined(ENABLE_NPKIT_NET_CHECK_LATENCY)
               sub->npKitStartTime[buffSlot] = sub->npKitLastPollTime[buffSlot] = npKitGetTsInUs();
@@ -1049,7 +1064,18 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
       if (sub->done < sub->transmitted) {
         int done;
         int buffSlot = (sub->base+sub->done)%NCCL_STEPS;
+
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_TEST_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_TEST_EXIT)
+          // volatile uint64_t ts_net_isend_test_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+          uint64_t ts_net_isend_test_entry = std::chrono::steady_clock::now().time_since_epoch().count();
+#endif
+
         NCCLCHECK(ncclNetTest(comm, sub->requests[buffSlot], &done, NULL));
+
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_TEST_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_TEST_EXIT)
+          // volatile uint64_t ts_net_isend_test_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+          uint64_t ts_net_isend_test_exit = std::chrono::steady_clock::now().time_since_epoch().count();
+#endif
 
 #if defined(ENABLE_NPKIT_NET_CHECK_LATENCY)
         uint64_t npKitPollTime = npKitGetTsInUs();
@@ -1067,16 +1093,27 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
           INFO(NCCL_INIT, "NET SEND EXIT INFO: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ")\n",
                     resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), std::chrono::steady_clock::now().time_since_epoch().count());
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_SEND_TEST_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_SEND_TEST_EXIT)
           NpKit::CollectCpuEvent(
-              NPKIT_EVENT_NET_SEND_EXIT,
+              NPKIT_EVENT_NET_SEND_TEST_ENTRY,
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
               g_npkit_net_poll_cnt,
 #else
               sub->npKitSizesFifo[buffSlot],
 #endif
               uint64_t(sub->requests+buffSlot)/sizeof(void*),
-              (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count()), resources->rank, resources->remoteRank, sub->channelId);
+              ts_net_isend_test_entry, resources->rank, resources->remoteRank, sub->channelId);
+
+          NpKit::CollectCpuEvent(
+              NPKIT_EVENT_NET_SEND_TEST_EXIT,
+#if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
+              g_npkit_net_poll_cnt,
+#else
+              sub->npKitSizesFifo[buffSlot],
+#endif
+              uint64_t(sub->requests+buffSlot)/sizeof(void*),
+              ts_net_isend_test_exit, resources->rank, resources->remoteRank, sub->channelId);
+
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
           g_npkit_net_poll_cnt = 0;
 #endif
@@ -1202,6 +1239,12 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
         uint64_t step = subGroup->posted;
         struct recvResources* resources = (struct recvResources*) (subGroup->connection->transportResources);
         void** requestPtr = subGroup->requests+(step%NCCL_STEPS);
+
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
+              // volatile uint64_t ts_net_irecv_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+              uint64_t ts_net_irecv_entry = std::chrono::steady_clock::now().time_since_epoch().count();
+#endif
+
         NCCLCHECK(ncclNetIrecv(comm, resources->netRecvComm, subCount, ptrs, sizes, tags, mhandles, requestPtr));
         if (*requestPtr) {
           for (int i=0; i<subGroup->groupSize; i++) {
@@ -1211,6 +1254,9 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
                     resources->rank, resources->remoteRank, sizes[i], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), std::chrono::steady_clock::now().time_since_epoch().count());
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
+            // volatile uint64_t ts_net_irecv_exit = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+            uint64_t ts_net_irecv_exit = std::chrono::steady_clock::now().time_since_epoch().count();
+
             NpKit::CollectCpuEvent(
                 NPKIT_EVENT_NET_RECV_ENTRY,
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
@@ -1219,7 +1265,18 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
                 sizes[i],
 #endif
                 uint64_t(sub->requests+(step%NCCL_STEPS))/sizeof(void*),
-                (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count()), resources->remoteRank, resources->rank, sub->channelId);
+                ts_net_irecv_entry, resources->remoteRank, resources->rank, sub->channelId);
+
+            NpKit::CollectCpuEvent(
+                NPKIT_EVENT_NET_RECV_EXIT,
+#if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
+                g_npkit_net_poll_cnt,
+#else
+                sizes[i],
+#endif
+                uint64_t(sub->requests+(step%NCCL_STEPS))/sizeof(void*),
+                ts_net_irecv_exit, resources->remoteRank, resources->rank, sub->channelId);
+
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
             g_npkit_net_poll_cnt = 0;
 #endif
@@ -1248,6 +1305,12 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
         int sizes[NCCL_PROXY_MAX_SUBS];
         void* mhandles[NCCL_PROXY_MAX_SUBS];
         for (int i=0; i<NCCL_PROXY_MAX_SUBS; i++) sizes[i] = 0;
+
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
+              // volatile uint64_t ts_net_irecv_test_entry = (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count());
+              uint64_t ts_net_irecv_test_entry = std::chrono::steady_clock::now().time_since_epoch().count();
+#endif
+
         NCCLCHECK(ncclNetTest(comm, subGroup->requests[step%NCCL_STEPS], &done, sizes));
 
 #if defined(ENABLE_NPKIT_NET_CHECK_LATENCY)
@@ -1278,14 +1341,25 @@ static ncclResult_t recvProxyProgress(struct ncclComm* comm, struct ncclProxyArg
 
 #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NET_RECV_ENTRY) && defined(ENABLE_NPKIT_EVENT_NET_RECV_EXIT)
             NpKit::CollectCpuEvent(
-                NPKIT_EVENT_NET_RECV_EXIT,
+                NPKIT_EVENT_NET_RECV_TEST_ENTRY,
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
                 g_npkit_net_poll_cnt,
 #else
                 sizes[i],
 #endif
                 uint64_t(sub->requests+(step%NCCL_STEPS))/sizeof(void*),
-                (NpKit::init_clock_offset + std::chrono::steady_clock::now().time_since_epoch().count()), resources->remoteRank, resources->rank, sub->channelId);
+                ts_net_irecv_test_entry, resources->remoteRank, resources->rank, sub->channelId);
+
+            NpKit::CollectCpuEvent(
+                NPKIT_EVENT_NET_RECV_TEST_EXIT,
+#if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
+                g_npkit_net_poll_cnt,
+#else
+                sizes[i],
+#endif
+                uint64_t(sub->requests+(step%NCCL_STEPS))/sizeof(void*),
+                std::chrono::steady_clock::now().time_since_epoch().count(), resources->remoteRank, resources->rank, sub->channelId);
+
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
             g_npkit_net_poll_cnt = 0;
 #endif

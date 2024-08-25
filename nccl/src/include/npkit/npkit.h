@@ -41,9 +41,9 @@ class NpKit {
 
   static uint64_t* GetCpuTimestamp();
 
-  static uint64_t init_system_clock;  //
-  static uint64_t init_steady_clock;  //
-  static uint64_t init_clock_offset;  //
+  // static uint64_t init_system_clock;  //
+  // static uint64_t init_steady_clock;  //
+  // static uint64_t init_clock_offset;  //
 
  private:
   static void CpuTimestampUpdateThread();

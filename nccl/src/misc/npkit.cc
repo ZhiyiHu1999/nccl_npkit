@@ -22,9 +22,10 @@ uint64_t* NpKit::cpu_timestamp_ = nullptr;
 std::thread* NpKit::cpu_timestamp_update_thread_ = nullptr;
 volatile bool NpKit::cpu_timestamp_update_thread_should_stop_ = false;
 
-uint64_t NpKit::init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();  //
-uint64_t NpKit::init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();  //
-uint64_t NpKit::init_clock_offset = NpKit::init_system_clock - NpKit::init_steady_clock;  //
+// uint64_t NpKit::init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();  //
+// uint64_t NpKit::init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();  //
+// uint64_t NpKit::init_clock_offset = NpKit::init_system_clock - NpKit::init_steady_clock;  //
+// uint64_t NpKit::init_clock_offset = 0;
 
 void NpKit::CpuTimestampUpdateThread() {
   // uint64_t init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();
@@ -33,11 +34,12 @@ void NpKit::CpuTimestampUpdateThread() {
   // NpKit::init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();  //
   // NpKit::init_clock_offset = NpKit::init_system_clock - NpKit::init_steady_clock;  //
   std::atomic_thread_fence(std::memory_order_seq_cst);
-  uint64_t curr_steady_clock = 0;
+  // uint64_t curr_steady_clock = 0;
   volatile uint64_t* volatile_cpu_timestamp_ = cpu_timestamp_;
   while (!cpu_timestamp_update_thread_should_stop_) {
-    curr_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();
-    *volatile_cpu_timestamp_ = NpKit::init_system_clock + (curr_steady_clock - NpKit::init_steady_clock);
+    // curr_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();
+    // *volatile_cpu_timestamp_ = NpKit::init_system_clock + (curr_steady_clock - NpKit::init_steady_clock);
+    *volatile_cpu_timestamp_ = std::chrono::steady_clock::now().time_since_epoch().count();
     std::atomic_thread_fence(std::memory_order_seq_cst);
   }
 }
@@ -73,7 +75,8 @@ ncclResult_t NpKit::Init(int rank) {
   // Init timestamp
   NCCLCHECK(ncclCudaHostCalloc(&cpu_timestamp_, 1));
   volatile uint64_t* volatile_cpu_timestamp = cpu_timestamp_;
-  *volatile_cpu_timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+  // *volatile_cpu_timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+  *volatile_cpu_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
   cpu_timestamp_update_thread_should_stop_ = false;
   cpu_timestamp_update_thread_ = new std::thread(CpuTimestampUpdateThread);
 
