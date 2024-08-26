@@ -101,4 +101,7 @@
 #define NPKIT_EVENT_NET_RECV_TEST_ENTRY                         0X52
 #define NPKIT_EVENT_NET_RECV_TEST_EXIT                          0X53
 
+#define NPKIT_EVENT_NPKIT_INIT_ENTRY                             0X54
+#define NPKIT_EVENT_NPKIT_INIT_EXIT                              0X55
+
 #endif

@@ -405,8 +405,18 @@ static ncclResult_t devCommSetup(ncclComm_t comm) {
 #if defined(ENABLE_NPKIT)
   // Init NPKit
   NCCLCHECK(NpKit::Init(comm->rank));
+
+  #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NPKIT_INIT_ENTRY) && defined(ENABLE_NPKIT_EVENT_NPKIT_INIT_EXIT)
+    NpKit::CollectCpuEvent(NPKIT_EVENT_NPKIT_INIT_ENTRY, 0, 0, std::chrono::steady_clock::now().time_since_epoch().count(), 0, 0, 0);
+  #endif  
+
   tmpCommAndChans.comm.npKitEventCollectContexts = NpKit::GetGpuEventCollectContexts();
   tmpCommAndChans.comm.cpuTimestamp = NpKit::GetCpuTimestamp();
+  
+  #if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_NPKIT_INIT_ENTRY) && defined(ENABLE_NPKIT_EVENT_NPKIT_INIT_EXIT)
+    NpKit::CollectCpuEvent(NPKIT_EVENT_NPKIT_INIT_EXIT, 0, 0, std::chrono::steady_clock::now().time_since_epoch().count(), 0, 0, 0);
+  #endif
+
 #endif
 
   NCCLCHECKGOTO(ncclCudaMemcpyAsync(devCommAndChans, &tmpCommAndChans, 1, comm->deviceStream.cudaStream), ret, fail);
