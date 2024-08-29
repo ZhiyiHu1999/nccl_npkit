@@ -5,6 +5,7 @@
 #include "alloc.h"
 #include "npkit/npkit.h"
 #include <atomic>
+#include <cstdio>
 
 uint64_t NpKit::rank_ = 0;
 
@@ -199,6 +200,10 @@ NpKitEventCollectContext* NpKit::GetGpuEventCollectContexts() {
 
 void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, uint8_t sender_rank, uint8_t receiver_rank, int channel_id) {
   uint64_t event_buffer_head = cpu_collect_contexts_[channel_id].event_buffer_head;
+  
+  // printf("CollectCpuEvent called with: type=%u, size=%u, rsvd=%u, timestamp=%llu, sender_rank=%u, receiver_rank=%u, channel_id=%d, event_buffer_head=%llu\n",
+  //        type, size, rsvd, timestamp, sender_rank, receiver_rank, channel_id, event_buffer_head);
+
   if (event_buffer_head < kMaxNumCpuEventsPerBuffer) {
     CPUEvent& event = cpu_collect_contexts_[channel_id].event_buffer[event_buffer_head];
     event.fields.type = type;

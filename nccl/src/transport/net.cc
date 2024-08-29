@@ -1104,6 +1104,9 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
               uint64_t(sub->requests+buffSlot)/sizeof(void*),
               ts_net_isend_test_entry, resources->rank, resources->remoteRank, sub->channelId);
 
+          INFO(NCCL_INIT, "NET TEST EXIT INFO 1: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), ts_net_isend_test_entry);
+
           NpKit::CollectCpuEvent(
               NPKIT_EVENT_NET_SEND_TEST_EXIT,
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
@@ -1113,6 +1116,9 @@ static ncclResult_t sendProxyProgress(struct ncclComm* comm, struct ncclProxyArg
 #endif
               uint64_t(sub->requests+buffSlot)/sizeof(void*),
               ts_net_isend_test_exit, resources->rank, resources->remoteRank, sub->channelId);
+
+          INFO(NCCL_INIT, "NET TEST EXIT INFO 2: (Sender_Global_Rank:%d, Receiver_Global_Rank:%d, Size:%d, Channel_Id:%d, Timestamp:%" PRIu64 ", SteadyClock:%" PRIu64 ")\n",
+                    resources->rank, resources->remoteRank, sub->npKitSizesFifo[buffSlot], sub->channelId, *(volatile uint64_t*)NpKit::GetCpuTimestamp(), ts_net_isend_test_exit);
 
 #if defined(ENABLE_NPKIT_NET_COLLECT_POLL_CNT)
           g_npkit_net_poll_cnt = 0;

@@ -1475,25 +1475,26 @@ static ncclResult_t commDestroySync(struct ncclAsyncJob* job_) {
   int commDevice = comm->cudaDev;
   ncclResult_t ret = ncclSuccess;
 
-#if defined(ENABLE_NPKIT)
-  const char* npkitDumpDir = nullptr;
-#endif
+// #if defined(ENABLE_NPKIT)
+//   const char* npkitDumpDir = nullptr;
+// #endif
 
   CUDACHECKGOTO(cudaGetDevice(&savedDevice), ret, fail);
   if (savedDevice != commDevice) {
     CUDACHECKGOTO(cudaSetDevice(commDevice), ret, fail);
   }
 
-#if defined(ENABLE_NPKIT)
-  // Dump NPKit events and shutdown
-  npkitDumpDir = getenv("NPKIT_DUMP_DIR");
-  if (npkitDumpDir == nullptr) {
-    WARN("NPKIT_DUMP_DIR is empty");
-  } else {
-    NCCLCHECKGOTO(NpKit::Dump(npkitDumpDir), ret, fail);
-  }
-  NCCLCHECKGOTO(NpKit::Shutdown(), ret, fail);
-#endif
+// #if defined(ENABLE_NPKIT)
+//   // Dump NPKit events and shutdown
+//   npkitDumpDir = getenv("NPKIT_DUMP_DIR");
+//   if (npkitDumpDir == nullptr) {
+//     WARN("NPKIT_DUMP_DIR is empty");
+//   } else {
+//     INFO(NCCL_INIT, "NPKit Dump Started");
+//     NCCLCHECKGOTO(NpKit::Dump(npkitDumpDir), ret, fail);
+//   }
+//   NCCLCHECKGOTO(NpKit::Shutdown(), ret, fail);
+// #endif
 
   TRACE(NCCL_INIT, "Destroying comm %p rank %d abortFlag %d asyncResult %d", comm, comm->rank, *comm->abortFlag, comm->asyncResult);
 
@@ -1696,6 +1697,20 @@ ncclResult_t ncclCommDestroy(ncclComm_t comm) {
 
   NCCLCHECK(commReclaim(comm));
   INFO(NCCL_INIT,"comm %p rank %d nranks %d cudaDev %d busId %lx - Destroy COMPLETE", comm, rank, nranks, cudaDev, busId);
+  
+#if defined(ENABLE_NPKIT)
+  const char* npkitDumpDir = nullptr;
+
+  // Dump NPKit events and shutdown
+  npkitDumpDir = getenv("NPKIT_DUMP_DIR");
+  if (npkitDumpDir == nullptr) {
+    WARN("NPKIT_DUMP_DIR is empty");
+  } else {
+    INFO(NCCL_INIT, "NPKit Dump Started");
+    NCCLCHECK(NpKit::Dump(npkitDumpDir));
+  }
+  NCCLCHECK(NpKit::Shutdown());
+#endif  
 
   return ncclSuccess;
 }
