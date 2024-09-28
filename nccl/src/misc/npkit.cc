@@ -34,14 +34,15 @@ void NpKit::CpuTimestampUpdateThread() {
   // NpKit::init_system_clock = std::chrono::system_clock::now().time_since_epoch().count();  //
   // NpKit::init_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();  //
   // NpKit::init_clock_offset = NpKit::init_system_clock - NpKit::init_steady_clock;  //
-  std::atomic_thread_fence(std::memory_order_seq_cst);
+  // std::atomic_thread_fence(std::memory_order_seq_cst);
   // uint64_t curr_steady_clock = 0;
   volatile uint64_t* volatile_cpu_timestamp_ = cpu_timestamp_;
   while (!cpu_timestamp_update_thread_should_stop_) {
     // curr_steady_clock = std::chrono::steady_clock::now().time_since_epoch().count();
     // *volatile_cpu_timestamp_ = NpKit::init_system_clock + (curr_steady_clock - NpKit::init_steady_clock);
     *volatile_cpu_timestamp_ = std::chrono::steady_clock::now().time_since_epoch().count();
-    std::atomic_thread_fence(std::memory_order_seq_cst);
+    // std::atomic_thread_fence(std::memory_order_seq_cst);
+    // __sync_synchronize();
   }
 }
 
@@ -76,7 +77,6 @@ ncclResult_t NpKit::Init(int rank) {
   // Init timestamp
   NCCLCHECK(ncclCudaHostCalloc(&cpu_timestamp_, 1));
   volatile uint64_t* volatile_cpu_timestamp = cpu_timestamp_;
-  // *volatile_cpu_timestamp = std::chrono::system_clock::now().time_since_epoch().count();
   *volatile_cpu_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
   cpu_timestamp_update_thread_should_stop_ = false;
   cpu_timestamp_update_thread_ = new std::thread(CpuTimestampUpdateThread);
@@ -198,7 +198,7 @@ NpKitEventCollectContext* NpKit::GetGpuEventCollectContexts() {
 //   }
 // }
 
-void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, uint8_t sender_rank, uint8_t receiver_rank, int channel_id) {
+void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t timestamp, uint8_t sender_rank, uint8_t receiver_rank, int channel_id, uint32_t step) {
   uint64_t event_buffer_head = cpu_collect_contexts_[channel_id].event_buffer_head;
   
   // printf("CollectCpuEvent called with: type=%u, size=%u, rsvd=%u, timestamp=%llu, sender_rank=%u, receiver_rank=%u, channel_id=%d, event_buffer_head=%llu\n",
@@ -212,6 +212,7 @@ void NpKit::CollectCpuEvent(uint8_t type, uint32_t size, uint32_t rsvd, uint64_t
     event.fields.timestamp = timestamp;
     event.fields.sender_rank = sender_rank;
     event.fields.receiver_rank = receiver_rank;
+    event.fields.step = step;
     cpu_collect_contexts_[channel_id].event_buffer_head++;
   }
 }

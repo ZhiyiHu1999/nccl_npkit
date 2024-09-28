@@ -30,17 +30,14 @@ namespace {
     int npKitCtxIdx = bid;
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_CPU)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_CPU) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_GPU)
     if (tid == 0) {
+      uint64_t gpuTimestamp = clock64();
       uint64_t* cpuTimestamp = ncclShmem.comm.cpuTimestamp;
-      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_CPU, 0, 0, *cpuTimestamp,
+      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_CPU, 0, 0, *(volatile uint64_t*)cpuTimestamp,
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
-    }
-#endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_GPU)
-    if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_GPU, 0, 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_GPU, 0, 0, gpuTimestamp,
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -238,17 +235,14 @@ namespace {
     int npKitCtxIdx = bid;
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_CPU)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_CPU) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_GPU)
     if (tid == 0) {
+      uint64_t gpuTimestamp = clock64();
       uint64_t* cpuTimestamp = ncclShmem.comm.cpuTimestamp;
-      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_CPU, 0, 0, *cpuTimestamp,
+      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_CPU, 0, 0, *(volatile uint64_t*)cpuTimestamp,
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
-    }
-#endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_GPU)
-    if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_GPU, 0, 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_GPU, 0, 0, gpuTimestamp,
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -409,17 +403,14 @@ namespace {
     }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_CPU)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_CPU) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_GPU)
     if (isNpKitThread) {
+      uint64_t gpuTimestamp = clock64();
       uint64_t* cpuTimestamp = ncclShmem.comm.cpuTimestamp;
-      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_CPU, 0, 0, *cpuTimestamp,
+      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_CPU, 0, 0, *(volatile uint64_t*)cpuTimestamp,
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
-    }
-#endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_TIME_SYNC_GPU)
-    if (isNpKitThread) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_GPU, 0, 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_TIME_SYNC_GPU, 0, 0, gpuTimestamp,
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif

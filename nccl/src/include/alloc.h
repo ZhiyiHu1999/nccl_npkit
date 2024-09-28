@@ -24,7 +24,8 @@ ncclResult_t ncclCudaHostCallocDebug(T** ptr, size_t nelem, const char *filefunc
   cudaStreamCaptureMode mode = cudaStreamCaptureModeRelaxed;
   *ptr = nullptr;
   CUDACHECK(cudaThreadExchangeStreamCaptureMode(&mode));
-  CUDACHECKGOTO(cudaHostAlloc(ptr, nelem*sizeof(T), cudaHostAllocMapped), result, finish);
+  // CUDACHECKGOTO(cudaHostAlloc(ptr, nelem*sizeof(T), cudaHostAllocMapped), result, finish);
+  CUDACHECKGOTO(cudaHostAlloc(ptr, nelem*sizeof(T), cudaHostAllocWriteCombined), result, finish); 
   memset(*ptr, 0, nelem*sizeof(T));
 finish:
   CUDACHECK(cudaThreadExchangeStreamCaptureMode(&mode));

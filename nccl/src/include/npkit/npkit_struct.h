@@ -24,6 +24,7 @@ union CPUEvent {
     uint64_t timestamp;
     uint64_t sender_rank : 8;
     uint64_t receiver_rank : 8;
+    uint64_t step : 32;
   } fields;
 };
 
