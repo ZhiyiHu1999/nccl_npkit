@@ -1,2 +1,2 @@
-nccl/lib/libnccl*
-nccl/obj
+nccl/build/lib/libnccl*
+nccl/build/obj
