@@ -42,9 +42,9 @@ namespace {
     }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_1_ALL_REDUCE_RING_ENTRY)
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_ENTRY, size*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_1_ALL_REDUCE_RING_ENTRY, size*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -95,9 +95,9 @@ namespace {
       offset = calcOffset(chunk);
       nelem = min(realChunkSize, size-offset);
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_SEND_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_SEND_ENTRY)
       if (tid == 0) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_SEND_ENTRY, nelem*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_SEND_ENTRY, nelem*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -105,18 +105,18 @@ namespace {
 
       prims.send(offset, nelem);
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_SEND_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_SEND_EXIT)
       if (tid == 0) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_SEND_EXIT, nelem*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_SEND_EXIT, nelem*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
 
       // k-2 steps: reduce and copy to next GPU
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_RECV_REDUCE_SEND_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_RECV_REDUCE_SEND_ENTRY)
       if (tid == 0 && nranks > 2) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_RECV_REDUCE_SEND_ENTRY, nelem*(nranks-2)*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_RECV_REDUCE_SEND_ENTRY, nelem*(nranks-2)*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -129,9 +129,9 @@ namespace {
         prims.recvReduceSend(offset, nelem);
       }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_RECV_REDUCE_SEND_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_RECV_REDUCE_SEND_EXIT)
       if (tid == 0 && nranks > 2) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_RECV_REDUCE_SEND_EXIT, nelem*(nranks-2)*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_RECV_REDUCE_SEND_EXIT, nelem*(nranks-2)*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
@@ -142,9 +142,9 @@ namespace {
       offset = calcOffset(chunk);
       nelem = min(realChunkSize, size-offset);
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY)
       if (tid == 0) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY, nelem*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY, nelem*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -152,16 +152,16 @@ namespace {
 
       prims.directRecvReduceCopySend(offset, offset, offset, nelem, /*postOp=*/true);
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_EXIT)
       if (tid == 0) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_EXIT, nelem*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_REDUCE_COPY_SEND_EXIT, nelem*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_ENTRY)
       if (tid == 0 && nranks > 2) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_ENTRY, nelem*(nranks-2)*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_ENTRY, nelem*(nranks-2)*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -175,9 +175,9 @@ namespace {
         prims.directRecvCopySend(offset, offset, nelem);
       }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_EXIT)
       if (tid == 0 && nranks > 2) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_EXIT, nelem*(nranks-2)*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_COPY_SEND_EXIT, nelem*(nranks-2)*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
@@ -187,9 +187,9 @@ namespace {
       offset = calcOffset(chunk);
       nelem = min(realChunkSize, size-offset);
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_ENTRY)
       if (tid == 0) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_ENTRY, nelem*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_ENTRY, nelem*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -197,18 +197,18 @@ namespace {
 
       prims.directRecv(offset, nelem);
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_EXIT)
       if (tid == 0) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_DIRECT_RECV_EXIT, nelem*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_RING_DIRECT_RECV_EXIT, nelem*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
 
     }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_RING_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_1_ALL_REDUCE_RING_EXIT)
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_RING_EXIT, size*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_1_ALL_REDUCE_RING_EXIT, size*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -415,9 +415,9 @@ namespace {
     }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_1_ALL_REDUCE_TREE_SPLIT_ENTRY)
     if (isNpKitThread) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_ENTRY, size*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_1_ALL_REDUCE_TREE_SPLIT_ENTRY, size*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -436,9 +436,9 @@ namespace {
       }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_ENTRY)
       if (isNpKitThread) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_ENTRY, size*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_ENTRY, size*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -450,9 +450,9 @@ namespace {
         prims.directRecvReduceCopySend(offset, offset, offset, nelem, /*doPost=*/true);
       }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_EXIT)
       if (isNpKitThread) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_EXIT, size*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_BROADCAST_EXIT, size*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
@@ -476,9 +476,9 @@ namespace {
       }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_ENTRY)
       if (isNpKitThread) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_ENTRY, size*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_ENTRY, size*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -499,9 +499,9 @@ namespace {
         }
       }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_EXIT)
       if (isNpKitThread) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_REDUCE_EXIT, size*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_REDUCE_EXIT, size*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
@@ -518,9 +518,9 @@ namespace {
       }
 #endif
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_BROADCAST_ENTRY)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_BROADCAST_ENTRY)
       if (isNpKitThread) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_BROADCAST_ENTRY, size*sizeof(T), 0, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_BROADCAST_ENTRY, size*sizeof(T), 0, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
         prims.npKitDataProcessTotalTime = 0;
       }
@@ -541,18 +541,18 @@ namespace {
         }
       }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_BROADCAST_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_BROADCAST_EXIT)
       if (isNpKitThread) {
-        NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_BROADCAST_EXIT, size*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
+        NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_2_ALL_REDUCE_TREE_SPLIT_BROADCAST_EXIT, size*sizeof(T), prims.npKitDataProcessTotalTime, clock64(),
             ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
       }
 #endif
 
     }
 
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_EXIT)
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_1_ALL_REDUCE_TREE_SPLIT_EXIT)
     if (isNpKitThread) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_ALL_REDUCE_TREE_SPLIT_EXIT, size*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_1_ALL_REDUCE_TREE_SPLIT_EXIT, size*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif

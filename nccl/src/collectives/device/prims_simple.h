@@ -693,92 +693,92 @@ private:
   }
 
   __device__ __forceinline__ void send(intptr_t inpIx, int eltN) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_SEND_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_SEND_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 0, 1, Input, -1>(inpIx, -1, -1, eltN, false);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
   __device__ __forceinline__ void sendFromOutput(intptr_t outIx, int eltN) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_SEND_FROM_OUTPUT_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_SEND_FROM_OUTPUT_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_SEND_FROM_OUTPUT_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_SEND_FROM_OUTPUT_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 0, 1, Output, -1>(outIx, -1, -1, eltN, false);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_SEND_FROM_OUTPUT_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_SEND_FROM_OUTPUT_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_SEND_FROM_OUTPUT_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_SEND_FROM_OUTPUT_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
   __device__ __forceinline__ void directSend(intptr_t inpIx, intptr_t remoteOutIx, int eltN) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_SEND_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_SEND_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 1, 0, 1, Input, -1>(inpIx, -1, remoteOutIx, eltN, false);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
   __device__ __forceinline__ void directSendFromOutput(intptr_t outIx, intptr_t remoteOutIx, int eltN) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_SEND_FROM_OUTPUT_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_SEND_FROM_OUTPUT_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_SEND_FROM_OUTPUT_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_SEND_FROM_OUTPUT_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 1, 0, 1, Output, -1>(outIx, -1, remoteOutIx, eltN, false);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_SEND_FROM_OUTPUT_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_SEND_FROM_OUTPUT_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_SEND_FROM_OUTPUT_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_SEND_FROM_OUTPUT_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
 
   __device__ __forceinline__ void recv(intptr_t outIx, int eltN, bool postOp=false) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 1, 0, -1, Output>(-1, outIx, -1, eltN, postOp);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
   __device__ __forceinline__ void directRecv(intptr_t outIx, int eltN) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_RECV_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_RECV_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_RECV_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_RECV_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<1, 0, 1, 0, -1, Output>(-1, outIx, -1, eltN, /*postOp=*/false);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_RECV_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_RECV_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_RECV_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_RECV_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -795,31 +795,31 @@ private:
     genericOp<0, 0, 1, 1, -1, -1>(-1, -1, -1, eltN, postOp);
   }
   __device__ __forceinline__ void recvCopySend(intptr_t outIx, int eltN, bool postOp=false) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 1, 1, -1, Output>(-1, outIx, -1, eltN, postOp);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
   __device__ __forceinline__ void directRecvCopySend(intptr_t outIx, intptr_t remoteOutIx, int eltN) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_RECV_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_RECV_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_RECV_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_RECV_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<1, 1, 1, 1, -1, Output>(-1, outIx, remoteOutIx, eltN, false);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_RECV_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_RECV_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_RECV_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_RECV_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -829,32 +829,32 @@ private:
   }
 
   __device__ __forceinline__ void recvReduceCopy(intptr_t inpIx, intptr_t outIx, int eltN, bool postOp=false) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_REDUCE_COPY_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_REDUCE_COPY_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 1, 0, Input, Output>(inpIx, outIx, -1, eltN, postOp);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_REDUCE_COPY_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_REDUCE_COPY_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
 
   __device__ __forceinline__ void recvReduceSend(intptr_t inpIx, int eltN, bool postOp=false) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_REDUCE_COPY_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_REDUCE_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_REDUCE_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 1, 1, Input, -1>(inpIx, -1, -1, eltN, postOp);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_REDUCE_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_REDUCE_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_REDUCE_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_REDUCE_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
@@ -864,32 +864,32 @@ private:
   }
 
   __device__ __forceinline__ void recvReduceCopySend(intptr_t inpIx, intptr_t outIx, int eltN, bool postOp=false) {
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_REDUCE_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_REDUCE_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 0, 1, 1, Input, Output>(inpIx, outIx, -1, eltN, postOp);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_RECV_REDUCE_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_RECV_REDUCE_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_RECV_REDUCE_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
   }
   __device__ __forceinline__ void directRecvReduceCopySend(intptr_t inpIx, intptr_t outIx, intptr_t remoteOutIx, int eltN, bool postOp=false) {
     // Direct is only for the send part
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_RECV_REDUCE_COPY_SEND_ENTRY, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
     genericOp<0, 1, 1, 1, Input, Output>(inpIx, outIx, remoteOutIx, eltN, postOp);
-#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_DIRECT_RECV_REDUCE_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
+#if defined(ENABLE_NPKIT) && defined(ENABLE_NPKIT_EVENT_GPU_OP_DIRECT_RECV_REDUCE_COPY_SEND_EXIT)  // Modification: Add NPKit tracing
     if (tid == 0) {
-      NpKit::CollectGpuEvent(NPKIT_EVENT_DIRECT_RECV_REDUCE_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
+      NpKit::CollectGpuEvent(NPKIT_EVENT_GPU_OP_DIRECT_RECV_REDUCE_COPY_SEND_EXIT, eltN*sizeof(T), 0, clock64(),
           ncclShmem.comm.npKitEventCollectContexts + npKitCtxIdx);
     }
 #endif
